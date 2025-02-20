@@ -1,0 +1,58 @@
+import os
+import shutil
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+
+# Define the paths
+source_folder = "path/to/source/folder"
+destination_folder = "path/to/destination/folder"
+
+# Define the mapping of file extensions to folders
+file_type_mapping = {
+    "Images": [".jpg", ".jpeg", ".png", ".gif", ".bmp"],
+    "Documents": [".pdf", ".docx", ".txt", ".xlsx", ".pptx"],
+    "Audio": [".mp3", ".wav", ".aac"],
+    "Video": [".mp4", ".mkv", ".mov"],
+    "Archives": [".zip", ".rar", ".tar.gz"],
+    "Others": []
+}
+
+class FileOrganizerHandler(FileSystemEventHandler):
+    def on_modified(self, event):
+        for filename in os.listdir(source_folder):
+            file_extension = os.path.splitext(filename)[1].lower()
+            moved = False
+            
+            for folder, extensions in file_type_mapping.items():
+                if file_extension in extensions:
+                    self.move_file(filename, folder)
+                    moved = True
+                    break
+            
+            if not moved:
+                self.move_file(filename, "Others")
+
+    def move_file(self, filename, folder):
+        source_path = os.path.join(source_folder, filename)
+        destination_path = os.path.join(destination_folder, folder)
+        
+        if not os.path.exists(destination_path):
+            os.makedirs(destination_path)
+
+        shutil.move(source_path, destination_path)
+        print(f"Moved {filename} to {folder} folder.")
+
+# Set up the observer and event handler
+event_handler = FileOrganizerHandler()
+observer = Observer()
+observer.schedule(event_handler, source_folder, recursive=True)
+observer.start()
+
+try:
+    print("Monitoring started. Press Ctrl+C to stop.")
+    while True:
+        pass
+except KeyboardInterrupt:
+    observer.stop()
+    observer.join()
+    print("Monitoring stopped.")
