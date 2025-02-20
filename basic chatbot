@@ -1,0 +1,56 @@
+import random
+import nltk
+import spacy
+from nltk.chat.util import Chat, reflections
+
+# Initialize spaCy
+nlp = spacy.load("en_core_web_sm")
+
+# Define a list of responses
+responses = [
+    "Hi there! How can I help you today?",
+    "Hello! What would you like to talk about?",
+    "Hey! How's your day going?",
+    "Hi! Do you have any questions for me?"
+]
+
+# Define pairs of patterns and responses for the chatbot
+pairs = [
+    (r"(.*)your name ?", ["My name is Chatbot."]),
+    (r"how are you ?", ["I'm doing good. How about you?"]),
+    (r"sorry (.*)", ["It's okay. No worries."]),
+    (r"i'm (.*) doing good", ["Nice to hear that!"]),
+    (r"hi|hello|hey", [random.choice(responses)]),
+    (r"(.*) created you ?", ["I was created by an AI enthusiast using Python."]),
+    (r"(.*) (location|city) ?", ["I'm a virtual entity, so I don't have a physical location."]),
+    (r"how is weather in (.*)?", ["I don't have real-time weather data, but you can check a weather website."]),
+    (r"quit", ["Bye! Have a great day!"])
+]
+
+# Define the chatbot class
+class ChatBot:
+    def __init__(self, pairs, reflections):
+        self.chat = Chat(pairs, reflections)
+    
+    def respond(self, user_input):
+        doc = nlp(user_input)
+        for token in doc:
+            if token.text.lower() in ["quit", "exit", "bye"]:
+                return "Bye! Have a great day!"
+        return self.chat.respond(user_input)
+
+# Initialize the chatbot
+chatbot = ChatBot(pairs, reflections)
+
+# Main function to run the chatbot
+def chat():
+    print("Hi! I'm a chatbot. Type 'quit' to exit.")
+    while True:
+        user_input = input("> ")
+        response = chatbot.respond(user_input)
+        print(response)
+        if response == "Bye! Have a great day!":
+            break
+
+if __name__ == "__main__":
+    chat()
